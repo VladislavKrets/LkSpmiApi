@@ -5,7 +5,7 @@ public class ProfileCurrent {
     private String sync_id;
     private String sync_source;
     private String external_id;
-    private int user_id;
+    private int user_id; //search by this
     private int bitrix_id;
     private String type;
     private String edu_mark_book_num; //номер зачетки

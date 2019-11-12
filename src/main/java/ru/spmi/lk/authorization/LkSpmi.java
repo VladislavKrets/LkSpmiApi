@@ -20,6 +20,8 @@ import ru.spmi.lk.entities.search.students.Specialization;
 import ru.spmi.lk.entities.search.students.StudentsSearchRequestBuilder;
 import ru.spmi.lk.entities.rup.Rup;
 import ru.spmi.lk.entities.rup.SettingsSectionRup;
+import ru.spmi.lk.entities.stipend.SettingsSectionStipend;
+import ru.spmi.lk.entities.stipend.Stipend;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.util.List;
 public class LkSpmi
 {
     private String cookies;
+    public static String DEFAULT_AVATAR_URL = "https://lk.spmi.ru/app/assets/images/default_image.svg";
 
     LkSpmi(String cookies) {
         this.cookies = cookies;
@@ -162,6 +165,21 @@ public class LkSpmi
 
     public EmployeeSearchByJobRequestBuilder searchEmployeesByJob(){
         return new EmployeeSearchByJobRequestBuilder(cookies);
+    }
+
+    public SettingsSectionStipend getSettingsSectionStipend() throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/settings/section/stipend");
+        SettingsSectionStipend read = gson.fromJson(json, SettingsSectionStipend.class);
+        return read;
+    }
+
+    public List<Stipend> getStipend() throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/stipends/");
+        Type type = new TypeToken<List<Stipend>>(){}.getType();
+        List<Stipend> read = gson.fromJson(json, type);
+        return read;
     }
 
     private String getRequest(String url) throws IOException{

@@ -15,8 +15,7 @@ public class Main {
         System.setProperty("https.proxyPort", "4333");
 
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
-        LkSpmi lkSpmi = authorization.authorize("s180275", "######");
-        System.out.println(lkSpmi.searchEmployeesByJob().addEduFullNameFilter("Абакшонок")
-                .execute().getItems()[0].getFullname());
+        LkSpmi lkSpmi = authorization.authorize("s180275", "7wTlQ4T8");
+        System.out.println(lkSpmi.getStipend().get(0).getSum());
     }
 }
