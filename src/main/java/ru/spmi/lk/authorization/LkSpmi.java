@@ -18,8 +18,8 @@ import ru.spmi.lk.entities.search.students.EduDep;
 import ru.spmi.lk.entities.search.students.Qualification;
 import ru.spmi.lk.entities.search.students.Specialization;
 import ru.spmi.lk.entities.search.students.StudentsSearchRequestBuilder;
-import ru.spmi.lk.rup.Rup;
-import ru.spmi.lk.rup.SettingsSectionRup;
+import ru.spmi.lk.entities.rup.Rup;
+import ru.spmi.lk.entities.rup.SettingsSectionRup;
 
 import java.io.BufferedReader;
 import java.io.IOException;

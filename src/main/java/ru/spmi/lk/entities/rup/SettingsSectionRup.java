@@ -1,4 +1,4 @@
-package ru.spmi.lk.rup;
+package ru.spmi.lk.entities.rup;
 
 public class SettingsSectionRup {
     private boolean allowRupSelection;
