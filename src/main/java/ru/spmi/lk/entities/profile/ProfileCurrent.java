@@ -31,6 +31,7 @@ public class ProfileCurrent {
     private InfoEntity edu_group;
     private InfoEntity edu_qualification;
     private InfoEntity edu_specialization;
+    private ProfileCurrentUserPhoto photo;
 
     public int getId() {
         return id;
@@ -150,5 +151,9 @@ public class ProfileCurrent {
 
     public InfoEntity getEduSpecialization() {
         return edu_specialization;
+    }
+
+    public ProfileCurrentUserPhoto getPhoto() {
+        return photo;
     }
 }
