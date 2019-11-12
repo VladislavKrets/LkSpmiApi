@@ -2,11 +2,15 @@ package ru.spmi.lk.authorization;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sun.org.apache.xpath.internal.operations.Or;
 import ru.spmi.lk.entities.attestations.Attestation;
 import ru.spmi.lk.entities.bup.Bup;
 import ru.spmi.lk.entities.bup.SettingsSectionBup;
+import ru.spmi.lk.entities.disk.Disk;
 import ru.spmi.lk.entities.marks.Mark2;
 import ru.spmi.lk.entities.marks.SettingsSectionMarks;
+import ru.spmi.lk.entities.orders.Order;
+import ru.spmi.lk.entities.orders.SettingsSectionOrder;
 import ru.spmi.lk.entities.profile.Profile;
 import ru.spmi.lk.entities.profile.ProfileCurrent;
 import ru.spmi.lk.entities.attestations.SettingsSectionAttestations;
@@ -24,17 +28,20 @@ import ru.spmi.lk.entities.stipend.SettingsSectionStipend;
 import ru.spmi.lk.entities.stipend.Stipend;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class LkSpmi
 {
     private String cookies;
     public static String DEFAULT_AVATAR_URL = "https://lk.spmi.ru/app/assets/images/default_image.svg";
+    private static String BASE_URL = "https://lk.spmi.ru";
 
     LkSpmi(String cookies) {
         this.cookies = cookies;
@@ -181,7 +188,49 @@ public class LkSpmi
         List<Stipend> read = gson.fromJson(json, type);
         return read;
     }
+    public SettingsSectionOrder getSettingsSectionOrder() throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/settings/section/orders");
+        SettingsSectionOrder read = gson.fromJson(json, SettingsSectionOrder.class);
+        return read;
+    }
 
+    public List<Order> getOrders() throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/orders/");
+        Type type = new TypeToken<List<Order>>(){}.getType();
+        List<Order> read = gson.fromJson(json, type);
+        return read;
+    }
+
+    public List<Disk> getDisk() throws IOException {
+        int bitrixId = getProfileCurrent().getBitrixId();
+        return getDisk("/company/personal/user/" + bitrixId + "/disk/path/");
+    }
+
+    public List<Disk> getDisk(String url) throws IOException{
+        String answer = getRequest(BASE_URL + url);
+        answer = answer.split("var +gridTile *= *new +BX\\.Main\\.TileGrid\\(")[1];
+        char[] chars = answer.toCharArray();
+        int open = 0;
+        int closed = 0;
+        int first = 0;
+        int last = 0;
+        for (int i = 0; i < chars.length; i++){
+            if (chars[i] == '[' && open == 0) first = i;
+            if (chars[i] == '[') open++;
+            if (chars[i] == ']') closed++;
+            if (open > 0 && closed > 0 && open == closed){
+                last = i;
+                break;
+            }
+        }
+        answer = answer.substring(first, last + 1);
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<Disk>>(){}.getType();
+        List<Disk> read = gson.fromJson(answer, type);
+        return read;
+    }
     private String getRequest(String url) throws IOException{
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("GET");

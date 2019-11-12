@@ -2,6 +2,7 @@ package ru.spmi.lk;
 
 import ru.spmi.lk.authorization.LkSpmi;
 import ru.spmi.lk.authorization.LkSpmiAuthorization;
+import ru.spmi.lk.entities.disk.Disk;
 import ru.spmi.lk.exceptions.NotAuthorizedException;
 
 import java.io.*;
@@ -16,6 +17,8 @@ public class Main {
 
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
         LkSpmi lkSpmi = authorization.authorize("s180275", "7wTlQ4T8");
-        System.out.println(lkSpmi.getStipend().get(0).getSum());
+        Disk disk = lkSpmi.getDisk().get(0);
+        System.out.println(disk.getName());
+        System.out.println(lkSpmi.getDisk(disk.getLink()).get(0).getName());
     }
 }
