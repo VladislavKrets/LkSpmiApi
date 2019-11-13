@@ -2,7 +2,6 @@ package ru.spmi.lk.authorization;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import ru.spmi.lk.entities.attestations.Attestation;
 import ru.spmi.lk.entities.bup.Bup;
 import ru.spmi.lk.entities.bup.SettingsSectionBup;
@@ -14,6 +13,8 @@ import ru.spmi.lk.entities.orders.SettingsSectionOrder;
 import ru.spmi.lk.entities.profile.Profile;
 import ru.spmi.lk.entities.profile.ProfileCurrent;
 import ru.spmi.lk.entities.attestations.SettingsSectionAttestations;
+import ru.spmi.lk.entities.schedule.Schedule;
+import ru.spmi.lk.entities.schedule.ScheduleGroup;
 import ru.spmi.lk.entities.search.employees.EmployeeSearchRequestBuilder;
 import ru.spmi.lk.entities.search.job.Dep;
 import ru.spmi.lk.entities.search.job.EmployeeSearchByJobRequestBuilder;
@@ -34,6 +35,8 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class LkSpmi
@@ -270,6 +273,25 @@ public class LkSpmi
         httpConn.disconnect();
     }
 
+    public List<ScheduleGroup> getScheduleGroups(String group) throws IOException{
+        Gson gson = new Gson();
+        group = URLEncoder.encode(group, "utf-8");
+        String json = getRequest(String.format("https://lk.spmi.ru/ruzapi/search?term=%s&type=group", group));
+        Type type = new TypeToken<List<ScheduleGroup>>(){}.getType();
+        List<ScheduleGroup> read = gson.fromJson(json, type);
+        return read;
+    }
+
+    public List<Schedule> getSchedules(int groupId, Date startDate, Date finishDate) throws IOException{
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+        String start = dateFormat.format(startDate);
+        String finish = dateFormat.format(finishDate);
+        String json = getRequest(String.format("https://lk.spmi.ru/ruzapi/schedule/group/%d?start=%s&finish=%s&lng=1", groupId, start, finish));
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<Schedule>>(){}.getType();
+        List<Schedule> read = gson.fromJson(json, type);
+        return read;
+    }
 
     private String getRequest(String url) throws IOException{
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -284,4 +306,5 @@ public class LkSpmi
         }
         return json.toString();
     }
+
 }

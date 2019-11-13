@@ -22,8 +22,8 @@ public class LkSpmiAuthorization {
         String urlParameters  = "AUTH_FORM=Y" +
                 "&TYPE=AUTH" +
                 "&backurl=%2Findex.php" +
-                "&USER_LOGIN=s180275" +
-                "&USER_PASSWORD=7wTlQ4T8";
+                "&USER_LOGIN=" + login +
+                "&USER_PASSWORD=" + password;
         byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
         String request = "https://lk.spmi.ru/index.php?login=yes";
