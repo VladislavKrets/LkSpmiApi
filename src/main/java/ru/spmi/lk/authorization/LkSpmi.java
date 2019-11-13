@@ -27,13 +27,12 @@ import ru.spmi.lk.entities.rup.SettingsSectionRup;
 import ru.spmi.lk.entities.stipend.SettingsSectionStipend;
 import ru.spmi.lk.entities.stipend.Stipend;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -42,6 +41,7 @@ public class LkSpmi
     private String cookies;
     public static String DEFAULT_AVATAR_URL = "https://lk.spmi.ru/app/assets/images/default_image.svg";
     private static String BASE_URL = "https://lk.spmi.ru";
+    private static String DEFAULT_DOWNLOAD_FILE_URL = "/disk/downloadFile/%d/?&ncc=1";
 
     LkSpmi(String cookies) {
         this.cookies = cookies;
@@ -231,6 +231,46 @@ public class LkSpmi
         List<Disk> read = gson.fromJson(answer, type);
         return read;
     }
+
+    public void downloadFile(int fileId, String fileName, String saveDir)
+            throws IOException {
+        String fileURL = String.format(DEFAULT_DOWNLOAD_FILE_URL, fileId);
+        System.out.println(fileURL);
+        URL url = new URL(BASE_URL + fileURL);
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setRequestProperty("Cookie", cookies);
+        int responseCode = httpConn.getResponseCode();
+
+        // always check HTTP response code first
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            String disposition = httpConn.getHeaderField("Content-Disposition");
+            String contentType = httpConn.getContentType();
+            int contentLength = httpConn.getContentLength();
+
+            // opens input stream from the HTTP connection
+            InputStream inputStream = httpConn.getInputStream();
+            String saveFilePath = saveDir == null ? fileName : (saveDir + File.separator + fileName);
+
+            // opens an output stream to save into file
+            FileOutputStream outputStream = new FileOutputStream(saveFilePath);
+
+            int bytesRead = -1;
+            byte[] buffer = new byte[1024];
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            outputStream.close();
+            inputStream.close();
+
+            System.out.println("File downloaded");
+        } else {
+            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+        }
+        httpConn.disconnect();
+    }
+
+
     private String getRequest(String url) throws IOException{
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("GET");

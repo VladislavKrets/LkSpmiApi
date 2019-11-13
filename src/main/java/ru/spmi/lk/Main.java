@@ -6,6 +6,7 @@ import ru.spmi.lk.entities.disk.Disk;
 import ru.spmi.lk.exceptions.NotAuthorizedException;
 
 import java.io.*;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException, NotAuthorizedException {
@@ -16,9 +17,15 @@ public class Main {
         System.setProperty("https.proxyPort", "4333");
 
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
-        LkSpmi lkSpmi = authorization.authorize("s180275", "#####");
-        Disk disk = lkSpmi.getDisk().get(0);
-        System.out.println(disk.getName());
-        System.out.println(lkSpmi.getDisk(disk.getLink()).get(0).getName());
+        LkSpmi lkSpmi = authorization.authorize("s180275", "7wTlQ4T8");
+
+        String link = lkSpmi.getDisk().get(0).getLink();
+        List<Disk> list = lkSpmi.getDisk(link);
+        for (Disk disk : list){
+            if (disk.isFile()){
+                lkSpmi.downloadFile(disk.getId(), disk.getName(), null);
+            }
+
+        }
     }
 }
