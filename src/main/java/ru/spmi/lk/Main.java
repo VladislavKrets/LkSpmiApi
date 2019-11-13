@@ -17,7 +17,7 @@ public class Main {
         System.setProperty("https.proxyPort", "4333");
 
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
-        LkSpmi lkSpmi = authorization.authorize("s180275", "7wTlQ4T8");
+        LkSpmi lkSpmi = authorization.authorize("s180275", "#####");
 
         String link = lkSpmi.getDisk().get(0).getLink();
         List<Disk> list = lkSpmi.getDisk(link);
