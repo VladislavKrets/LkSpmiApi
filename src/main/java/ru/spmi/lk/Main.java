@@ -19,7 +19,7 @@ public class Main {
         System.setProperty("https.proxyPort", "4333");
         //System.setProperty("java.net.useSystemProxies", "true");
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
-        LkSpmi lkSpmi = authorization.authorize("s180275", "7wTlQ4T8");
+        LkSpmi lkSpmi = authorization.authorize("s180275", "######");
         EmployeeSearchResponseItem[] employeeSearchResponseItems =
                 lkSpmi.searchEmployees().execute().getItems();
         String url;
