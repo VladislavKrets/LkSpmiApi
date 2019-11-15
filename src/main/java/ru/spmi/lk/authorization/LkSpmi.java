@@ -2,7 +2,6 @@ package ru.spmi.lk.authorization;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.jsoup.Jsoup;
 import ru.spmi.lk.entities.attestations.Attestation;
 import ru.spmi.lk.entities.bup.Bup;
 import ru.spmi.lk.entities.bup.SettingsSectionBup;
@@ -11,6 +10,7 @@ import ru.spmi.lk.entities.marks.Mark2;
 import ru.spmi.lk.entities.marks.SettingsSectionMarks;
 import ru.spmi.lk.entities.orders.Order;
 import ru.spmi.lk.entities.orders.SettingsSectionOrder;
+import ru.spmi.lk.entities.portfolio.*;
 import ru.spmi.lk.entities.profile.Profile;
 import ru.spmi.lk.entities.profile.ProfileCurrent;
 import ru.spmi.lk.entities.attestations.SettingsSectionAttestations;
@@ -33,7 +33,6 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -307,6 +306,49 @@ public class LkSpmi
         return read;
     }
 
+    //use getId from currentProfile semesterInYear(1, 2)
+    public UserAchievements getUserAchievements(int id, int year, int semesterInYear) throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest(String
+                .format("https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/user/%d/common/%d/%d",
+                        id, year, semesterInYear));
+        UserAchievements read = gson.fromJson(json, UserAchievements.class);
+        return read;
+    }
+
+    public UserAchievementsPoints getPoints(int id, int year, int semesterInYear) throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest(String
+                .format("https://lk.spmi.ru/bitrix/vuz/api/mon/points/%d/%d/%d",
+                        id, year, semesterInYear));
+        UserAchievementsPoints read = gson.fromJson(json, UserAchievementsPoints.class);
+        return read;
+    }
+    public List<AchievementsType> getAllAchievementsTypes() throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/file/types/-1");
+        Type type = new TypeToken<List<AchievementsType>>(){}.getType();
+        List<AchievementsType> read = gson.fromJson(json, type);
+        return read;
+    }
+    //для добавления
+    // children тоже использовать в запрос до конца
+    public AchievementInfo getAchievementInfo(int id, int achievementId) throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest(String
+                .format("https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/level/%d/%d",
+                        id, achievementId));
+        AchievementInfo read = gson.fromJson(json, AchievementInfo.class);
+        return read;
+    }
+
+    public List<AchievementFileType> getAchievementFileTypes(int achievementId) throws IOException{
+        Gson gson = new Gson();
+        String json = getRequest("https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/file/types/" + achievementId);
+        Type type = new TypeToken<List<AchievementFileType>>(){}.getType();
+        List<AchievementFileType> read = gson.fromJson(json, type);
+        return read;
+    }
     //tests
     // какой-то запрос через ajax с sessid хз что это но пусть будет
     private void example() throws IOException{
