@@ -2,6 +2,7 @@ package ru.spmi.lk.authorization;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jsoup.Jsoup;
 import ru.spmi.lk.entities.attestations.Attestation;
 import ru.spmi.lk.entities.bup.Bup;
 import ru.spmi.lk.entities.bup.SettingsSectionBup;
@@ -235,10 +236,23 @@ public class LkSpmi
         return read;
     }
 
+    // null saveDir if to current folder
     public void downloadFile(int fileId, String fileName, String saveDir)
             throws IOException {
         String fileURL = String.format(DEFAULT_DOWNLOAD_FILE_URL, fileId);
         System.out.println(fileURL);
+        download(fileName, saveDir, fileURL);
+    }
+    // null saveDir if to current folder
+    public void downloadImage(String imageName, String imageUrl, String saveDir) throws IOException{
+        if(imageName == null) {
+            int index = imageUrl.lastIndexOf("/");
+            imageName = imageUrl.substring(index + 1);
+        }
+        download(imageName, saveDir, imageUrl);
+    }
+
+    private void download(String fileName, String saveDir, String fileURL) throws IOException {
         URL url = new URL(BASE_URL + fileURL);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setRequestProperty("Cookie", cookies);
@@ -291,6 +305,41 @@ public class LkSpmi
         Type type = new TypeToken<List<Schedule>>(){}.getType();
         List<Schedule> read = gson.fromJson(json, type);
         return read;
+    }
+
+    //tests
+    // какой-то запрос через ajax с sessid хз что это но пусть будет
+    private void example() throws IOException{
+        String sessid = getRequest("https://lk.spmi.ru/company/personal/user/11441/disk/path/%D0%9A%D1%83%D0%B7/?grid_id=folder_list_11456&internal=true");
+        //sessid = Jsoup.parse(sessid).body().getElementById("sessid").attr("value");
+        sessid = sessid.split("'bitrix_sessid':'")[1];
+        sessid = sessid.substring(0, sessid.indexOf("'"));
+        String urlParameters = "resetFilter=1&SITE_ID=s1&sessid=" + sessid;
+        byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
+        int postDataLength = postData.length;
+        String request = "https://lk.spmi.ru/company/personal/user/11441/disk/path/%D0%9A%D1%83%D0%B7/?grid_id=folder_list_11456&internal=true";
+        URL url = new URL(request);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Cookie", cookies);
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("charset", "utf-8");
+        conn.setRequestProperty("Content-Length", Integer.toString( postDataLength ));
+        conn.setUseCaches(false);
+        try(DataOutputStream wr = new DataOutputStream( conn.getOutputStream())) {
+            wr.write(postData);
+        }
+        try(BufferedReader br = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine = null;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            System.out.println(response.toString());
+        }
     }
 
     private String getRequest(String url) throws IOException{
