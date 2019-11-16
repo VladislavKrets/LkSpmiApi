@@ -2,14 +2,13 @@ package ru.spmi.lk;
 
 import ru.spmi.lk.authorization.LkSpmi;
 import ru.spmi.lk.authorization.LkSpmiAuthorization;
-import ru.spmi.lk.entities.disk.Disk;
-import ru.spmi.lk.entities.portfolio.UserAchievementsItem;
-import ru.spmi.lk.entities.search.employees.EmployeeSearchResponseItem;
+import ru.spmi.lk.entities.portfolio.upload.AddResponse;
+import ru.spmi.lk.entities.portfolio.upload.Attachment;
+import ru.spmi.lk.entities.portfolio.upload.UploadResponse;
+import ru.spmi.lk.entities.profile.ProfileCurrent;
 import ru.spmi.lk.exceptions.NotAuthorizedException;
 
 import java.io.*;
-import java.util.Date;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException, NotAuthorizedException {
@@ -20,9 +19,7 @@ public class Main {
         System.setProperty("https.proxyPort", "4333");
         //System.setProperty("java.net.useSystemProxies", "true");
         LkSpmiAuthorization authorization = new LkSpmiAuthorization();
-        LkSpmi lkSpmi = authorization.authorize("s180275", "####");
-        int id = lkSpmi.getProfileCurrent().getId();
-        System.out.println(lkSpmi.getAchievementInfo(id, 63).getTitle());
-
+        LkSpmi lkSpmi = authorization.authorize("s180275", "#####");
+        ProfileCurrent current = lkSpmi.getProfileCurrent();
     }
 }

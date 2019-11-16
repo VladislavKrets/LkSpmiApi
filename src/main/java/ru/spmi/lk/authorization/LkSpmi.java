@@ -11,6 +11,7 @@ import ru.spmi.lk.entities.marks.SettingsSectionMarks;
 import ru.spmi.lk.entities.orders.Order;
 import ru.spmi.lk.entities.orders.SettingsSectionOrder;
 import ru.spmi.lk.entities.portfolio.*;
+import ru.spmi.lk.entities.portfolio.upload.AddResponse;
 import ru.spmi.lk.entities.profile.Profile;
 import ru.spmi.lk.entities.profile.ProfileCurrent;
 import ru.spmi.lk.entities.attestations.SettingsSectionAttestations;
@@ -28,6 +29,9 @@ import ru.spmi.lk.entities.rup.Rup;
 import ru.spmi.lk.entities.rup.SettingsSectionRup;
 import ru.spmi.lk.entities.stipend.SettingsSectionStipend;
 import ru.spmi.lk.entities.stipend.Stipend;
+import ru.spmi.lk.entities.portfolio.upload.AchievementRequest;
+import ru.spmi.lk.entities.portfolio.upload.Attachment;
+import ru.spmi.lk.entities.portfolio.upload.UploadResponse;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -35,6 +39,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -349,6 +354,120 @@ public class LkSpmi
         List<AchievementFileType> read = gson.fromJson(json, type);
         return read;
     }
+
+    public UploadResponse uploadFile(File file) throws IOException{
+        String request = "https://lk.spmi.ru/bitrix/vuz/attachments/upload";
+        URL url = new URL(request);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        byte[] boundaryStart = "------WebKitFormBoundary1E2kXwOkt9JODrQ0\r\n".getBytes("utf-8");
+        byte[] disposition = String.format("Content-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n",
+                file.getName()).getBytes("utf-8");
+        byte[] type = fileTypeFactory(file.getName()).getBytes("utf-8");
+        byte[] boundaryEnd = "------WebKitFormBoundary1E2kXwOkt9JODrQ0--\r\n".getBytes("utf-8");
+        long length = file.length() + boundaryStart.length + disposition.length + type.length + boundaryEnd.length;
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Cookie", cookies);
+        conn.setRequestProperty("content-type", "multipart/form-data; boundary=----WebKitFormBoundary1E2kXwOkt9JODrQ0");
+        conn.setRequestProperty("content-length", String.valueOf(length));
+        try(OutputStream output = conn.getOutputStream()) {
+            output.write(boundaryStart);
+            output.write(disposition);
+            output.write(type);
+            Files.copy(file.toPath(), output);
+            output.write("\r\n".getBytes("utf-8"));
+            output.write(boundaryEnd);
+            output.flush();
+        }
+        StringBuilder lines = new StringBuilder();
+        try(InputStream inputStream = conn.getInputStream()) {
+            BufferedReader bufferedReader = new BufferedReader(new
+                    InputStreamReader(inputStream));
+            String line;
+            lines = new StringBuilder();
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.append(line);
+            }
+        }
+        Gson gson = new Gson();
+        UploadResponse read = gson.fromJson(lines.toString(), UploadResponse.class);
+        return read;
+    }
+
+    public AddResponse addAchievement(int ratingId /*global parent achievement id*/, String description,
+                             int userId /* user getId */,int year, int semester,
+                             int[] levels /* all ids in achievement hierarchy */,
+                             Attachment[] attachments) throws IOException{
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        AchievementRequest achievementRequest = new AchievementRequest();
+        achievementRequest.setRatingId(ratingId);
+        achievementRequest.setDescription(description);
+        achievementRequest.setDate(dateFormat.format(new Date()));
+        achievementRequest.setDateEnd("");
+        achievementRequest.setAttachments(attachments);
+        achievementRequest.setLevels(levels);
+        achievementRequest.setCriterionId(0);
+        achievementRequest.setYear(year);
+        achievementRequest.setUserId(userId);
+        achievementRequest.setSemester(semester);
+        Gson gson = new Gson();
+        String json = gson.toJson(achievementRequest);
+
+        String request = "https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/add";
+        byte[] bytes = json.getBytes("utf-8");
+        URL url = new URL(request);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Cookie", cookies);
+        conn.setRequestProperty("content-type", "text/plain");
+        conn.setRequestProperty("content-length", String.valueOf(bytes.length));
+        try(OutputStream output = conn.getOutputStream()) {
+            output.write(bytes);
+            output.flush();
+        }
+        StringBuilder lines = new StringBuilder();
+        try(InputStream inputStream = conn.getInputStream()) {
+            BufferedReader bufferedReader = new BufferedReader(new
+                    InputStreamReader(inputStream));
+            String line;
+            lines = new StringBuilder();
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.append(line);
+            }
+        }
+        AddResponse read = gson.fromJson(lines.toString(), AddResponse.class);
+        return read;
+    }
+
+    public void deleteAchievement(int achievementId) throws IOException{
+        String response = getRequest("https://lk.spmi.ru/bitrix/vuz/api/mon/achievements/delete/"
+                + achievementId);
+
+    }
+
+    private String fileTypeFactory(String filename){
+        filename = filename.trim();
+        if (filename.endsWith(".pdf")){
+            return "Content-Type: application/pdf\r\n\r\n";
+        }
+        else if (filename.endsWith(".png")){
+            return "Content-Type: image/png\r\n\r\n";
+        }
+        else if (filename.endsWith(".jpg")){
+            return "Content-Type: image/jpg\r\n\r\n";
+        }
+        else if (filename.endsWith(".docx")){
+            return "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n";
+        }
+        else if (filename.endsWith(".doc")){
+            return "Content-Type: application/msword\r\n\r\n";
+        }
+        else {
+            return "";
+        }
+    }
+
     //tests
     // какой-то запрос через ajax с sessid хз что это но пусть будет
     private void example() throws IOException{
